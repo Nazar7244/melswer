@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html class="dark" lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MELS WEAR</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&family=League+Gothic&display=swap" rel="stylesheet"/>
+
+<!-- GSAP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<!-- AOS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "surface-tint": "#00d9ff",
+        "surface-container-highest": "#353534",
+        "surface-container-high": "#2a2a2a",
+        "surface-container": "#201f1f",
+        "surface-container-low": "#1c1b1b",
+        "on-surface-variant": "#bbc9ce",
+        "outline-variant": "#3c494d",
+        "secondary-fixed": "#e2e2e2",
+        "on-background": "#e5e2e1",
+      }
+    }
+  }
+}
+</script>
+
+<style>
+  :root {
+    --electric: #00D9FF;
+    --acid: #B6FF00;
+    --black: #0A0A0A;
+    --white: #FFFFFF;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Manrope', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--electric);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.1s ease;
+    mix-blend-mode: difference;
+  }
+  .cursor-follower {
+    width: 36px; height: 36px;
+    border: 1px solid var(--electric);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    transition: all 0.12s ease;
+    opacity: 0.5;
+  }
+  a, button { cursor: none; }
+
+  /* Gothic font */
+  .font-gothic {
+    font-family: 'League Gothic', 'Impact', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+  }
+
+  /* Header */
+  header {
+    position: fixed; top: 0; width: 100%; z-index: 50;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 24px; height: 80px;
+    background: rgba(10,10,10,0.9);
+    border-bottom: 2px solid var(--white);
+    backdrop-filter: blur(0px);
+  }
+
+  /* Hero */
+  .hero {
+    position: relative;
+    height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    overflow: hidden;
+    border-bottom: 1px solid var(--white);
+  }
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background: var(--black);
+    will-change: transform;
+  }
+  .hero-bg img {
+    width: 100%; height: 120%;
+    object-fit: cover;
+    opacity: 0.35;
+    will-change: transform;
+  }
+
+  /* Glitch text */
+  .glitch {
+    position: relative;
+  }
+  .glitch::before,
+  .glitch::after {
+    content: attr(data-text);
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+  .glitch::before {
+    color: var(--electric);
+    clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+    transform: translateX(-3px);
+    animation: glitch1 4s infinite linear;
+  }
+  .glitch::after {
+    color: var(--acid);
+    clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+    transform: translateX(3px);
+    animation: glitch2 4s infinite linear;
+  }
+  @keyframes glitch1 {
+    0%, 90%, 100% { transform: translateX(-3px) scaleX(1); opacity: 0; }
+    92% { transform: translateX(-5px) scaleX(1.01); opacity: 1; }
+    94% { transform: translateX(3px) scaleX(0.99); opacity: 1; }
+    96% { transform: translateX(-2px); opacity: 0; }
+  }
+  @keyframes glitch2 {
+    0%, 90%, 100% { transform: translateX(3px) scaleX(1); opacity: 0; }
+    91% { transform: translateX(5px) scaleX(1.01); opacity: 1; }
+    93% { transform: translateX(-3px) scaleX(0.99); opacity: 1; }
+    95% { transform: translateX(2px); opacity: 0; }
+  }
+
+  /* Electric scanline */
+  .scanline {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--electric), transparent);
+    animation: scanline 3s linear infinite;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  @keyframes scanline {
+    0% { top: 0; }
+    100% { top: 100%; }
+  }
+
+  /* Product cards */
+  .product-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--white);
+    transition: border-color 0s;
+    will-change: transform;
+  }
+  .product-card:hover { border-color: var(--electric); }
+  .product-card .card-img {
+    width: 100%; aspect-ratio: 3/4;
+    object-fit: cover;
+    filter: grayscale(1);
+    transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94),
+                filter 0.4s ease;
+    will-change: transform, filter;
+  }
+  .product-card:hover .card-img {
+    transform: scale(1.08);
+    filter: grayscale(0);
+  }
+  .product-card .card-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,217,255,0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .product-card:hover .card-overlay { opacity: 1; }
+
+  /* Card price flash */
+  .price-tag {
+    color: var(--electric);
+    transition: color 0.15s;
+  }
+  .product-card:hover .price-tag { color: var(--acid); }
+
+  /* Horizontal scroll section */
+  .scroll-track {
+    overflow-x: auto;
+    display: flex;
+    gap: 16px;
+    padding-left: 40px;
+    padding-bottom: 16px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scroll-track::-webkit-scrollbar { display: none; }
+
+  /* Section reveal line */
+  .reveal-line {
+    width: 0;
+    height: 2px;
+    background: var(--electric);
+    margin-bottom: 24px;
+    transition: width 0.8s cubic-bezier(0.25,0.46,0.45,0.94);
+  }
+  .reveal-line.active { width: 80px; }
+
+  /* Noise overlay */
+  .noise {
+    position: fixed; inset: 0; z-index: 9997;
+    pointer-events: none;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+  }
+
+  /* Page transition overlay */
+  .page-trans {
+    position: fixed; inset: 0; z-index: 9996;
+    background: var(--electric);
+    transform: scaleY(0);
+    transform-origin: top;
+    pointer-events: none;
+  }
+
+  /* CTA buttons */
+  .btn-primary {
+    background: var(--white);
+    border: 2px solid var(--white);
+    color: var(--black);
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 16px 32px;
+    position: relative;
+    overflow: hidden;
+    transition: color 0.05s;
+  }
+  .btn-primary::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--black);
+    transform: translateX(-101%);
+    transition: transform 0.2s cubic-bezier(0.25,0.46,0.45,0.94);
+  }
+  .btn-primary:hover::before { transform: translateX(0); }
+  .btn-primary:hover { color: var(--white); }
+  .btn-primary span { position: relative; z-index: 1; }
+
+  .btn-outline {
+    background: transparent;
+    border: 2px solid var(--white);
+    color: var(--white);
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 16px 32px;
+    position: relative;
+    overflow: hidden;
+    transition: color 0.05s;
+  }
+  .btn-outline::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--white);
+    transform: translateX(-101%);
+    transition: transform 0.2s cubic-bezier(0.25,0.46,0.45,0.94);
+  }
+  .btn-outline:hover::before { transform: translateX(0); }
+  .btn-outline:hover { color: var(--black); }
+  .btn-outline span { position: relative; z-index: 1; }
+
+  /* Counter animation */
+  .stat-num {
+    font-family: 'League Gothic', sans-serif;
+    font-size: 64px;
+    color: var(--electric);
+    line-height: 1;
+  }
+
+  /* Marquee */
+  .marquee-wrap {
+    overflow: hidden;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    padding: 12px 0;
+  }
+  .marquee-track {
+    display: flex;
+    white-space: nowrap;
+    animation: marquee 18s linear infinite;
+  }
+  .marquee-track span {
+    font-family: 'League Gothic', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.05em;
+    padding: 0 32px;
+    color: rgba(255,255,255,0.25);
+  }
+  .marquee-track span.accent { color: var(--electric); }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* Instagram grid hover */
+  .insta-cell {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    cursor: none;
+  }
+  .insta-cell img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    filter: grayscale(1);
+    opacity: 0.75;
+    transition: filter 0.4s ease, opacity 0.4s ease, transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94);
+  }
+  .insta-cell:hover img {
+    filter: grayscale(0);
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  .insta-cell .insta-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,217,255,0.1);
+    opacity: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.3s;
+  }
+  .insta-cell:hover .insta-overlay { opacity: 1; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--electric); }
+
+  /* ── SCROLL PROGRESS BAR ── */
+  #scroll-progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, var(--electric), var(--acid));
+    z-index: 9999;
+    transition: width 0.05s linear;
+    box-shadow: 0 0 10px var(--electric), 0 0 20px rgba(0,217,255,0.4);
+  }
+
+  /* ── MAGNETIC BUTTON ── */
+  .btn-magnetic {
+    display: inline-block;
+    position: relative;
+    transition: transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
+    will-change: transform;
+  }
+
+  /* ── TILT CARD ── */
+  .tilt-card {
+    transform-style: preserve-3d;
+    transition: box-shadow 0.3s ease;
+    will-change: transform;
+  }
+  .tilt-card:hover {
+    box-shadow: 0 20px 60px rgba(0,217,255,0.15), 0 0 30px rgba(0,217,255,0.05);
+  }
+  .tilt-card .tilt-shine {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(0,217,255,0.12), transparent 65%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 3;
+  }
+  .tilt-card:hover .tilt-shine { opacity: 1; }
+
+  /* ── TEXT SCRAMBLE ── */
+  .scramble-text {
+    display: inline-block;
+  }
+
+  /* Bottom nav mobile */
+  @media (min-width: 768px) { .bottom-nav { display: none; } }
+</style>
+</head>
+<body>
+
+<!-- Scroll Progress Bar -->
+<div id="scroll-progress"></div>
+
+<!-- Cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-follower" id="cursor-follower"></div>
+
+<!-- Noise overlay -->
+<div class="noise"></div>
+
+<!-- Page transition -->
+<div class="page-trans" id="page-trans"></div>
+
+<!-- HEADER -->
+<header id="header">
+  <button class="text-[#00D9FF] p-2 hover:bg-white hover:text-black transition-none">
+    <span class="material-symbols-outlined text-2xl">menu</span>
+  </button>
+  <h1 class="font-gothic text-2xl font-black text-white" style="font-size:22px;letter-spacing:0.15em">MELS WEAR</h1>
+  <button class="text-[#00D9FF] font-bold text-xs tracking-widest p-2 hover:bg-white hover:text-black transition-none">RU/KZ</button>
+</header>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="scanline"></div>
+  <div class="hero-bg" id="hero-bg">
+    <img id="hero-img"
+      src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKUH5gw8SyCLY_-dnxSFfzuD1etLwgtdWnLRVcx3xG2-Lq_8aW5cIEcIF1-vAZ28a1IRxw10BqOKw0rPSzRCnqxmsOPXflVvrAE3au3YqI1f0wLdYkFV8ae38XRY2JB_KlcnkMVimNGi6RfXx38aN2io_V1_XhtP06hnM47owMU5v2OY1Gm4VNT4AkbS1c2bVAfCvfVrZiUxDQUPLGc__zTyJTSZXzBEOsAEIgD0zyw32vbLNcB8IOlxRtljDcGP8EOLoN9NI8kKg"
+      alt="Hero"/>
+  </div>
+
+  <!-- Electric grid overlay -->
+  <div style="position:absolute;inset:0;z-index:1;background:repeating-linear-gradient(0deg,transparent,transparent 79px,rgba(0,217,255,0.04) 80px),repeating-linear-gradient(90deg,transparent,transparent 79px,rgba(0,217,255,0.04) 80px);pointer-events:none;"></div>
+
+  <div style="position:relative;z-index:2;text-align:center;display:flex;flex-direction:column;align-items:center;gap:24px" id="hero-content">
+    <div style="overflow:hidden">
+      <h2 class="font-gothic glitch scramble-text" data-text="WEAR YOUR STORY" data-scramble="WEAR YOUR STORY"
+        style="font-size:clamp(56px,10vw,110px);line-height:0.9;color:var(--white);letter-spacing:-0.02em"
+        id="hero-title">
+        WEAR YOUR STORY
+      </h2>
+    </div>
+    <p style="font-size:14px;letter-spacing:0.12em;color:rgba(255,255,255,0.6);border:1px solid rgba(0,217,255,0.4);padding:8px 20px;background:rgba(0,217,255,0.05)"
+      id="hero-sub">
+      АВТОРСКИЕ ДИЗАЙНЫ С DTF-ПЕЧАТЬЮ
+    </p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center" id="hero-btns">
+      <div class="btn-magnetic"><button class="btn-primary"><span>КАТАЛОГ</span></button></div>
+      <div class="btn-magnetic"><button class="btn-outline"><span>СВОЙ ДИЗАЙН</span></button></div>
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div style="position:absolute;bottom:32px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0.5" id="scroll-ind">
+    <span style="font-size:10px;letter-spacing:0.2em;font-family:'Manrope',sans-serif">SCROLL</span>
+    <div style="width:1px;height:40px;background:linear-gradient(to bottom,var(--electric),transparent);animation:scrollPulse 1.5s ease-in-out infinite"></div>
+  </div>
+</section>
+
+<style>
+@keyframes scrollPulse {
+  0%,100% { opacity:0.3; transform:scaleY(0.8); }
+  50% { opacity:1; transform:scaleY(1); }
+}
+</style>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span>MELS WEAR</span><span class="accent">★</span>
+    <span>ASTANA</span><span class="accent">★</span>
+    <span>DTF PRINT</span><span class="accent">★</span>
+    <span>STREETWEAR</span><span class="accent">★</span>
+    <span>CUSTOM DESIGN</span><span class="accent">★</span>
+    <span>WEAR YOUR STORY</span><span class="accent">★</span>
+    <span>MELS WEAR</span><span class="accent">★</span>
+    <span>ASTANA</span><span class="accent">★</span>
+    <span>DTF PRINT</span><span class="accent">★</span>
+    <span>STREETWEAR</span><span class="accent">★</span>
+    <span>CUSTOM DESIGN</span><span class="accent">★</span>
+    <span>WEAR YOUR STORY</span><span class="accent">★</span>
+  </div>
+</div>
+
+<!-- ХИТЫ ПРОДАЖ -->
+<section style="padding:80px 0;border-bottom:1px solid var(--white)" id="hits-section">
+  <div style="padding:0 40px;margin-bottom:32px;display:flex;justify-content:space-between;align-items:flex-end">
+    <div>
+      <div class="reveal-line" id="hits-line"></div>
+      <h3 class="font-gothic" style="font-size:52px;line-height:1;color:var(--white)" data-aos="fade-right" data-aos-duration="600">ХИТЫ ПРОДАЖ</h3>
+    </div>
+    <span class="material-symbols-outlined" style="color:var(--electric);font-size:32px;cursor:none">arrow_forward</span>
+  </div>
+
+  <div class="scroll-track">
+    <!-- Card 1 -->
+    <div class="product-card tilt-card" style="min-width:280px" data-aos="fade-up" data-aos-delay="0" data-aos-duration="600">
+      <div style="position:relative;overflow:hidden">
+        <div class="tilt-shine"></div>
+        <img class="card-img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzPuETG5MyDfz2e_zaaoinVqP08KNtOxfj6WSddLGcV4f0BXRQC8oBDaK6-SHmDGzlvQXzdQIak5iO-K_XqmRsfaZ4uLJCpDN2cDYiC-mqkirsrsALk1X0_8lLKmtqtZA0Qx3L8AEPBt2IM9CT3DjRTV20GuqATLFMiy8efevFqcVJFHMtnkwyG9kFhfQo3GEZstZ_GVKtBoijIRIgqiqbpHr7vpJxYq-nPhrcDGpNcXiusiMB_xTZk2L9aoYIEiEc6jFPt0IFdJA" alt="Archive Tee"/>
+        <div class="card-overlay"></div>
+        <div style="position:absolute;top:10px;left:10px;border:1px solid var(--white);padding:4px 8px;font-size:10px;font-weight:700;letter-spacing:0.1em;background:var(--black)">NEW</div>
+      </div>
+      <div style="padding:16px;background:var(--black);border-top:1px solid var(--white)">
+        <h4 style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--white)">ARCHIVE TEE v1.0</h4>
+        <p class="price-tag" style="margin-top:4px;font-size:16px">18,000 ₸</p>
+      </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="product-card tilt-card" style="min-width:280px" data-aos="fade-up" data-aos-delay="100" data-aos-duration="600">
+      <div style="position:relative;overflow:hidden">
+        <div class="tilt-shine"></div>
+        <img class="card-img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0EUCmtFZk-V8MLG-gyM5sjcz-P2F8cqVhPt34B9gMqEg67kyiWt_YMpCtW3Cihjo9KB8RsvGTcpnBKT8f_3QhExaSDrujS5-r06_zA3cw8X7WNQ-vJC0yEJgZmaQeCpDRUxX_LA4ffYXmssZ1LRwhPUpZyQdK_ZOnMy_54d45FcqdA4kNrXQ-9HOzcnXG3pMCq5LNtMgJlj99b0jtmsGVBdDjoV8_oPxCNa-cW1Wl29Ez5RhRZZe6AdZw0GJC6W38zgaDY" alt="Void Hoodie"/>
+        <div class="card-overlay"></div>
+      </div>
+      <div style="padding:16px;background:var(--black);border-top:1px solid var(--white)">
+        <h4 style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--white)">VOID HOODIE</h4>
+        <p class="price-tag" style="margin-top:4px;font-size:16px">32,000 ₸</p>
+      </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="product-card tilt-card" style="min-width:280px;margin-right:40px" data-aos="fade-up" data-aos-delay="200" data-aos-duration="600">
+      <div style="position:relative;overflow:hidden">
+        <div class="tilt-shine"></div>
+        <img class="card-img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxLplEbClh4pbEPtHi-BpgTjsDJ6C1Nr5dELLmWC7p0kH95vz1dhqlaKOgWA8blEzOMo1isKexQyjVEryC7vYwkKobx1isY2svZ29trnpdqUNDJKTmrSHPNalRnUzyE37evXQdViQMKKgDYFNAEB1DprjLkcUMDKD6OnJ72zpCmqUWDWpzWaxOQDLvmj6LwsYfnil34_uCI6_epfT2BvZRDRsTmL8gzIPphwfOo3cAY_T_pgDElqcqE_DjNMEtqaggEkpm_LoGejo" alt="Glitch Tee"/>
+        <div class="card-overlay"></div>
+        <div style="position:absolute;top:10px;left:10px;border:1px solid var(--white);padding:4px 8px;font-size:10px;font-weight:700;letter-spacing:0.1em;background:var(--black)">RESTOCK</div>
+      </div>
+      <div style="padding:16px;background:var(--black);border-top:1px solid var(--white)">
+        <h4 style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--white)">GLITCH TEE</h4>
+        <p class="price-tag" style="margin-top:4px;font-size:16px">18,000 ₸</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS SECTION -->
+<section style="padding:80px 40px;border-bottom:1px solid var(--white);display:grid;grid-template-columns:repeat(3,1fr);gap:0">
+  <div style="text-align:center;padding:32px;border-right:1px solid rgba(255,255,255,0.15)" data-aos="fade-up" data-aos-duration="600">
+    <div class="stat-num" id="stat1">0</div>
+    <div style="font-size:10px;letter-spacing:0.15em;color:rgba(255,255,255,0.4);margin-top:8px">ЗАКАЗОВ ВЫПОЛНЕНО</div>
+  </div>
+  <div style="text-align:center;padding:32px;border-right:1px solid rgba(255,255,255,0.15)" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
+    <div class="stat-num" id="stat2">0</div>
+    <div style="font-size:10px;letter-spacing:0.15em;color:rgba(255,255,255,0.4);margin-top:8px">УНИКАЛЬНЫХ ДИЗАЙНОВ</div>
+  </div>
+  <div style="text-align:center;padding:32px" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
+    <div class="stat-num" id="stat3">0</div>
+    <div style="font-size:10px;letter-spacing:0.15em;color:rgba(255,255,255,0.4);margin-top:8px">ГОРОДОВ КАЗАХСТАНА</div>
+  </div>
+</section>
+
+<!-- СОЗДАЙ СВОЙ ДИЗАЙН -->
+<section style="padding:80px 40px;border-bottom:1px solid var(--white)">
+  <div style="display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--white)" data-aos="fade-up" data-aos-duration="700">
+    <div style="padding:48px;background:var(--black);display:flex;flex-direction:column;justify-content:center;gap:20px">
+      <div class="reveal-line" id="promo-line"></div>
+      <h3 class="font-gothic" style="font-size:52px;line-height:0.95;color:var(--white)">СОЗДАЙ<br/>СВОЙ ДИЗАЙН</h3>
+      <p style="font-size:14px;color:rgba(255,255,255,0.6);line-height:1.7">
+        Используй наш конструктор для создания уникальных принтов с DTF-печатью.
+      </p>
+      <button class="btn-outline" style="width:fit-content"><span>КОНСТРУКТОР →</span></button>
+    </div>
+    <div style="height:360px;position:relative;overflow:hidden;border-left:1px solid var(--white)">
+      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBM_9JaT-bl7H-6UfBiKiGw5auhHXOMPK8QVYSrstUWr9MaNFJfQZ_kLt4cZGSgGm9yUnnaHCSqL6DFFumnKRhYfd8dDtdAiat07y3ktCMjedH-JKpuNO1c1SdarpS0rgB4zRR_XNcsLMfS_G_znge0PCMiLsXQvrQiDu4hvmqNt0SMm27wsvVINXDpOY5BU4SSGbRAky8cjJOH3zWkmyFXxX0uMGXgBE8leXO7JXGTFNCfH9P72Dhb2v65J4emCq3P62bDGLYGE0c"
+        style="width:100%;height:120%;object-fit:cover;opacity:0.55" id="promo-img" alt="Constructor"/>
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,217,255,0.1),transparent)"></div>
+    </div>
+  </div>
+</section>
+
+<!-- INSTAGRAM -->
+<section style="padding:80px 0;border-bottom:1px solid var(--white)">
+  <div style="padding:0 40px;margin-bottom:32px;display:flex;justify-content:space-between;align-items:flex-end">
+    <h3 class="font-gothic" style="font-size:52px;color:var(--white)" data-aos="fade-right" data-aos-duration="600">@MELSWEAR</h3>
+    <span style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--electric);text-decoration:underline;text-underline-offset:4px">FOLLOW US</span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--white);border-top:1px solid var(--white);border-bottom:1px solid var(--white)">
+    <div class="insta-cell" data-aos="fade-up" data-aos-delay="0">
+      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9X4KyCoO8fz3N7hQRaCCSJNHlHd1t8ZBTYdqMam_cvwdudMPev-ANv9Y0rpcfqdw8CdFzxAfINnnLiFftATq6t3d39qFwsH3umC2dSbrUlnQSeOhi9WsuNfduQIaSLwbUNH11QjRSA0J7wd0fCNVgAc-2kFWlL1z8f7hdTHHtU6p3gpuWw6RoBrzwjlXxjnuvTMU_clorzLMfYtUJzbGoEUKSvLTD8Yn2A5NpwM1uOCLh2ZrQdoPiFkl-aqPjFkO_pVIpEeno0aM" alt="Insta 1"/>
+      <div class="insta-overlay"><span class="material-symbols-outlined" style="color:white;font-size:28px">favorite</span></div>
+    </div>
+    <div class="insta-cell" data-aos="fade-up" data-aos-delay="80">
+      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdwJe_YyNwSkeyJy0cHZK74qUUEZRw_1BhxRVC8tkLb0dPVrfDM-1ujHYwCFegBZAZIBC1YEeW5wDguZ5U8QSOd1ss0bsX2S_D4RwqBG-mBzFxNfR35BRzXJ4m4vjoZsVwd35kZcKnQQr1mnQjePBPu-z1tYvhPsV0vwmhmuBwUsMGLT-APJOHm2pzMY3nJyZMAVqY4r9zBrOg5xcxVSdE4iPJbrm3h7qTMVxEccFF1PQxVHkUUrlfuH25GbC1NEas2Gp9bH3XhHE" alt="Insta 2"/>
+      <div class="insta-overlay"><span class="material-symbols-outlined" style="color:white;font-size:28px">favorite</span></div>
+    </div>
+    <div class="insta-cell" data-aos="fade-up" data-aos-delay="160">
+      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCED-lKd4mTpl3UJwnjKs2TaEb6u55ogFPujfFjBJuRQ7Vv0LVjQUB9ilCTGEFFih8pL4cX908YuZvYVOZyO3i6YnK68_910C56LbZen04eM0QVOWeJvuQiil-EL6CRNvBYvZWUZIyuEKBMOy7ExBij3BzUptl10iH1xzyAKHuYzXptNJzPNqiXAEFgH2g4ZAVOnOeLjnk-AKCP2coLNYtYJJb_NfDUyD4f5SHRaSftMbTZnavn_OKzEx5ZJ3v2VLjMkUr0GwRYqcM" alt="Insta 3"/>
+      <div class="insta-overlay"><span class="material-symbols-outlined" style="color:white;font-size:28px">favorite</span></div>
+    </div>
+    <div class="insta-cell" data-aos="fade-up" data-aos-delay="0">
+      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfFMOIQJ2XHuWP3LTTlxEf08qxM26C8ao7eoUewFoCSxJknMFtmGYh0KQ73l7x0ek1xOpYSMtoAb8YQ__91ZlE3Hhja3VLOL26yx8yQOZyO3i6YnK68_910C56LbZen04eM0QVOWeJvuQiil-EL6CRNvBYvZWUZIyuEKBMOy7ExBij3BzUptl10iH1xzyAKHuYzXptNJzPNqiXAEFgH2g4ZAVOnOeLjnk-AKCP2coLNYtYJJb_NfDUyD4f5SHRaSftMbTZnavn_OKzEx5ZJ3v2VLjMkUr0GwRYqcM" alt="Insta 4"/>
+      <div class="insta-overlay"><span class="material-symbols-outlined" style="color:white;font-size:28px">favorite</span></div>
+    </div>
+    <div class="insta-cell" data-aos="fade-up" data-aos-delay="80">
+      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDL3LlVIlU9tPfdTSMQeCAxlrCAb-iqRUgA0yrkf_gpiF4rwzaXFHdLlU9tPfdTSMQeCAxlrCAb-iqRUgA0yrkf_gpiF4rwzaXFF" alt="Insta 5"/>
+      <div class="insta-overlay"><span class="material-symbols-outlined" style="color:white;font-size:28px">favorite</span></div>
+    </div>
+    <div class="insta-cell" data-aos="fade-up" data-aos-delay="160">
+      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLh0zHFZ0q2K9u4mkkjTKD35egyRYtcittQQc9oCa3U1J5ZCFatIhlqqR1ptjtJ9VbsYCCRGGsPBRT1w8UhT2GhQtSDD__rSi8MZ78cwgg-L7Sc_HRMM_f1323mcEl6V-boD7n_cRDPE1tkV-7AgYtXIkkwr9241TIyaG_kpSP-sqoF3QvQUEfqGsFXePtpP3apbL89vk4aL7_7OII69-uiyOPwLAWt3Lr3FOcNlKCj-2Mrh6Cm7rGuKV6-q1SKc8Mve6MA5lc7Tc" alt="Insta 6"/>
+      <div class="insta-overlay"><span class="material-symbols-outlined" style="color:white;font-size:28px">favorite</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer style="padding:48px 40px;background:var(--black);border-top:2px solid var(--white);display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end">
+  <div>
+    <h2 class="font-gothic" style="font-size:36px;color:var(--white);margin-bottom:16px">MELS WEAR</h2>
+    <div style="display:flex;gap:24px;border-bottom:1px solid rgba(255,255,255,0.15);padding-bottom:16px;margin-bottom:16px">
+      <a href="#" style="color:rgba(255,255,255,0.4);font-size:10px;font-weight:700;letter-spacing:0.1em;text-decoration:none;text-transform:uppercase;transition:color 0.15s" onmouseover="this.style.color='#00D9FF'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">INSTAGRAM</a>
+      <a href="#" style="color:rgba(255,255,255,0.4);font-size:10px;font-weight:700;letter-spacing:0.1em;text-decoration:none;text-transform:uppercase" onmouseover="this.style.color='#00D9FF'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">TIKTOK</a>
+      <a href="#" style="color:rgba(255,255,255,0.4);font-size:10px;font-weight:700;letter-spacing:0.1em;text-decoration:none;text-transform:uppercase" onmouseover="this.style.color='#00D9FF'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">TELEGRAM</a>
+    </div>
+    <p style="color:rgba(255,255,255,0.25);font-size:10px;letter-spacing:0.1em;text-transform:uppercase">©2024 MELS WEAR ASTANA. ALL RIGHTS RESERVED.</p>
+  </div>
+  <div style="display:flex;gap:16px">
+    <span style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase">KASPI PAY</span>
+    <span style="color:rgba(255,255,255,0.3);font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase">HALYK</span>
+  </div>
+</footer>
+
+<!-- Mobile bottom nav -->
+<nav class="bottom-nav" style="position:fixed;bottom:0;width:100%;z-index:50;display:flex;justify-content:space-around;align-items:center;height:64px;background:var(--black);border-top:2px solid var(--white)">
+  <a href="#" style="color:#00D9FF;display:flex;align-items:center;justify-content:center;width:100%;height:100%"><span class="material-symbols-outlined">home</span></a>
+  <a href="#" style="color:white;display:flex;align-items:center;justify-content:center;width:100%;height:100%"><span class="material-symbols-outlined">search</span></a>
+  <a href="#" style="color:white;display:flex;align-items:center;justify-content:center;width:100%;height:100%"><span class="material-symbols-outlined">shopping_bag</span></a>
+  <a href="#" style="color:white;display:flex;align-items:center;justify-content:center;width:100%;height:100%"><span class="material-symbols-outlined">person</span></a>
+</nav>
+
+<script>
+// ── CURSOR ──
+const cursor = document.getElementById('cursor');
+const follower = document.getElementById('cursor-follower');
+let mx = 0, my = 0, fx = 0, fy = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx - 6 + 'px';
+  cursor.style.top = my - 6 + 'px';
+});
+
+function animFollower() {
+  fx += (mx - fx) * 0.12;
+  fy += (my - fy) * 0.12;
+  follower.style.left = fx - 18 + 'px';
+  follower.style.top = fy - 18 + 'px';
+  requestAnimationFrame(animFollower);
+}
+animFollower();
+
+document.querySelectorAll('a, button, .product-card, .insta-cell').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursor.style.transform = 'scale(2.5)';
+    follower.style.transform = 'scale(1.5)';
+    follower.style.borderColor = '#B6FF00';
+  });
+  el.addEventListener('mouseleave', () => {
+    cursor.style.transform = 'scale(1)';
+    follower.style.transform = 'scale(1)';
+    follower.style.borderColor = '#00D9FF';
+  });
+});
+
+// ── AOS ──
+AOS.init({
+  once: true,
+  offset: 80,
+  easing: 'ease-out-cubic'
+});
+
+// ── GSAP ──
+gsap.registerPlugin(ScrollTrigger);
+
+// Hero entrance
+const tl = gsap.timeline({ delay: 0.1 });
+tl.from('#hero-title',  { y: 80, opacity: 0, duration: 0.9, ease: 'power3.out' })
+  .from('#hero-sub',    { y: 30, opacity: 0, duration: 0.6, ease: 'power2.out' }, '-=0.4')
+  .from('#hero-btns',   { y: 20, opacity: 0, duration: 0.5, ease: 'power2.out' }, '-=0.3')
+  .from('#scroll-ind',  { opacity: 0, duration: 0.5 }, '-=0.1');
+
+// Parallax on hero image
+gsap.to('#hero-img', {
+  yPercent: 25,
+  ease: 'none',
+  scrollTrigger: {
+    trigger: '#hero',
+    start: 'top top',
+    end: 'bottom top',
+    scrub: true
+  }
+});
+
+// Parallax on promo image
+gsap.to('#promo-img', {
+  yPercent: 12,
+  ease: 'none',
+  scrollTrigger: {
+    trigger: '#promo-img',
+    start: 'top bottom',
+    end: 'bottom top',
+    scrub: true
+  }
+});
+
+// Header shrink on scroll
+ScrollTrigger.create({
+  start: 'top -60',
+  onUpdate: (self) => {
+    const h = document.getElementById('header');
+    if (self.scroll() > 60) {
+      h.style.height = '56px';
+      h.style.borderBottomColor = 'rgba(0,217,255,0.3)';
+    } else {
+      h.style.height = '80px';
+      h.style.borderBottomColor = 'var(--white)';
+    }
+  }
+});
+
+// Reveal lines
+function activateLine(id, trigId) {
+  ScrollTrigger.create({
+    trigger: trigId,
+    start: 'top 80%',
+    onEnter: () => document.getElementById(id).classList.add('active')
+  });
+}
+activateLine('hits-line', '#hits-section');
+activateLine('promo-line', '#promo-line');
+
+// Counter animation
+function animCounter(id, target, suffix = '') {
+  ScrollTrigger.create({
+    trigger: '#' + id,
+    start: 'top 85%',
+    once: true,
+    onEnter: () => {
+      gsap.to({ val: 0 }, {
+        val: target,
+        duration: 1.8,
+        ease: 'power2.out',
+        onUpdate: function() {
+          document.getElementById(id).textContent = Math.round(this.targets()[0].val) + suffix;
+        }
+      });
+    }
+  });
+}
+animCounter('stat1', 1200, '+');
+animCounter('stat2', 340, '+');
+animCounter('stat3', 16, '');
+
+// Product cards stagger on scroll
+gsap.utils.toArray('.product-card').forEach((card, i) => {
+  gsap.from(card, {
+    y: 50, opacity: 0, duration: 0.7,
+    ease: 'power2.out',
+    delay: i * 0.1,
+    scrollTrigger: {
+      trigger: card,
+      start: 'top 90%',
+      once: true
+    }
+  });
+});
+
+// ── SCROLL PROGRESS BAR ──
+const progressBar = document.getElementById('scroll-progress');
+window.addEventListener('scroll', () => {
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+  progressBar.style.width = pct + '%';
+}, { passive: true });
+
+// ── TEXT SCRAMBLE ──
+class TextScramble {
+  constructor(el) {
+    this.el = el;
+    this.chars = '!<>-_\\/[]{}—=+*^?#ABCDEFGHIJKLMNOPQRSTUVWXYZ01234';
+    this.update = this.update.bind(this);
+  }
+  setText(newText) {
+    const old = this.el.innerText;
+    const len = Math.max(old.length, newText.length);
+    const promise = new Promise(res => this.resolve = res);
+    this.queue = [];
+    for (let i = 0; i < len; i++) {
+      const from = old[i] || '';
+      const to = newText[i] || '';
+      const start = Math.floor(Math.random() * 10);
+      const end = start + Math.floor(Math.random() * 14);
+      this.queue.push({ from, to, start, end });
+    }
+    cancelAnimationFrame(this.frameReq);
+    this.frame = 0;
+    this.update();
+    return promise;
+  }
+  update() {
+    let output = '';
+    let complete = 0;
+    for (let i = 0, n = this.queue.length; i < n; i++) {
+      let { from, to, start, end, char } = this.queue[i];
+      if (this.frame >= end) {
+        complete++;
+        output += to;
+      } else if (this.frame >= start) {
+        if (!char || Math.random() < 0.28) {
+          char = this.chars[Math.floor(Math.random() * this.chars.length)];
+          this.queue[i].char = char;
+        }
+        output += `<span style="color:var(--electric);opacity:0.7">${char}</span>`;
+      } else {
+        output += from;
+      }
+    }
+    this.el.innerHTML = output;
+    if (complete === this.queue.length) {
+      this.resolve();
+    } else {
+      this.frameReq = requestAnimationFrame(this.update);
+      this.frame++;
+    }
+  }
+}
+
+// Run scramble on hero title once + on hover
+const scrambleEls = document.querySelectorAll('.scramble-text');
+scrambleEls.forEach(el => {
+  const original = el.dataset.scramble;
+  const fx = new TextScramble(el);
+  // Initial scramble on load
+  setTimeout(() => fx.setText(original), 900);
+  // Scramble on hover
+  el.addEventListener('mouseenter', () => fx.setText(original));
+});
+
+// Scramble section headings on scroll enter
+document.querySelectorAll('h3.font-gothic').forEach(el => {
+  const orig = el.textContent.trim();
+  const fx2 = new TextScramble(el);
+  let done = false;
+  ScrollTrigger.create({
+    trigger: el,
+    start: 'top 85%',
+    once: true,
+    onEnter: () => {
+      if (!done) { done = true; fx2.setText(orig); }
+    }
+  });
+});
+
+// ── MAGNETIC BUTTONS ──
+document.querySelectorAll('.btn-magnetic').forEach(wrap => {
+  const btn = wrap.querySelector('button');
+  wrap.addEventListener('mousemove', e => {
+    const rect = wrap.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = (e.clientX - cx) * 0.35;
+    const dy = (e.clientY - cy) * 0.35;
+    gsap.to(wrap, { x: dx, y: dy, duration: 0.3, ease: 'power2.out' });
+    gsap.to(btn, { x: dx * 0.2, y: dy * 0.2, duration: 0.3, ease: 'power2.out' });
+  });
+  wrap.addEventListener('mouseleave', () => {
+    gsap.to(wrap, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1,0.5)' });
+    gsap.to(btn, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1,0.5)' });
+  });
+});
+
+// ── TILT CARDS (3D) ──
+document.querySelectorAll('.tilt-card').forEach(card => {
+  const shine = card.querySelector('.tilt-shine');
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const rotX = ((y - cy) / cy) * -10;
+    const rotY = ((x - cx) / cx) * 10;
+    gsap.to(card, {
+      rotationX: rotX,
+      rotationY: rotY,
+      transformPerspective: 800,
+      duration: 0.3,
+      ease: 'power2.out'
+    });
+    // Move shine to follow mouse
+    if (shine) {
+      const px = (x / rect.width) * 100;
+      const py = (y / rect.height) * 100;
+      shine.style.background = `radial-gradient(circle at ${px}% ${py}%, rgba(0,217,255,0.18), transparent 60%)`;
+    }
+  });
+  card.addEventListener('mouseleave', () => {
+    gsap.to(card, {
+      rotationX: 0, rotationY: 0,
+      duration: 0.6,
+      ease: 'elastic.out(1,0.5)'
+    });
+  });
+});
+
+document.querySelectorAll('a[href="#"]').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const overlay = document.getElementById('page-trans');
+    gsap.to(overlay, {
+      scaleY: 1, duration: 0.4, ease: 'power2.in',
+      onComplete: () => {
+        gsap.to(overlay, { scaleY: 0, transformOrigin: 'bottom', duration: 0.4, ease: 'power2.out', delay: 0.1 });
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
